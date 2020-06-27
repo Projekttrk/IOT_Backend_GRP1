@@ -1,8 +1,11 @@
 from datetime import datetime
 import pandas as pd
 import configparser
+import logging
 
 CONFIG_PATH = "application/error_conf.ini"
+
+logging.basicConfig(level=logging.DEBUG, filename="log.txt")
 
 
 def process_request(json_request):
@@ -22,8 +25,6 @@ def create_timestamp():
 
 
 class RequestHandler:
-    LOG_PATH = "log.txt"
-
     def __init__(self, request):
         self.config = _generate_config(CONFIG_PATH)
         try:
@@ -33,10 +34,9 @@ class RequestHandler:
             print(e)
             self.number, self.color, self.is_first = None, None, None
 
-    def log_request(self, path, *args):
-        with open(path, 'a') as f:
-            for arg in args:
-                f.write(str(arg))
+    def log_request(self, status):
+        timestamp = create_timestamp()
+        logging.info("{}: number: {} color: {} status: {}".format(timestamp, self.number, self.color, status))
 
     def _parse_request(self, request):
         num = request["number"]
@@ -48,10 +48,16 @@ class RequestHandler:
     def create_response(self):
         if self.number:
             if self.is_first:
+                self.log_request("new")
                 return {"request_ok": True, "possible_solution": self._generate_possible_solution()}
             else:
+                self.log_request("moved to prisma")              
                 return {"request_ok": True, "possible_solution": None}
+        elif not self.number and not self.is_first:
+            self.log_request("solved")
+            return {"request_ok": True, "possible_solution": None}
         else:
+            self.log_request("internal error")
             return {"request_ok": False, "possible_solution": None}
 
     def _generate_possible_solution(self):
@@ -59,6 +65,7 @@ class RequestHandler:
 
     def create_DAV_connection(self):
         # creates connection to PRISMA DAV serverself.
+        # STAR never gave login details :)
         pass
 
 
