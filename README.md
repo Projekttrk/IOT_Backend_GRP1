@@ -14,7 +14,7 @@ Built at Munich University of Applied Sciences TRK
 
 ## Starting
 1. Activate venv
-2. ```flask run``` or ```python app.py```
+2. ```flask run``` or ```python app.py``` / ```flask run --host=0.0.0.0``` for hosting in LAN
 
 ## Dependencies
 - see requirements.txt
