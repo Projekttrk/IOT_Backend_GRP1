@@ -36,7 +36,9 @@ class RequestHandler:
 
     def log_request(self, status):
         timestamp = create_timestamp()
-        logging.info("{}: number: {} color: {} status: {}".format(timestamp, self.number, self.color, status))
+        error_desc = self._get_error_description()
+        logging.info("{}: number: {} color: {} problem: {} status: {}".format(
+            timestamp, self.number, self.color, error_desc, status))
 
     def _parse_request(self, request):
         num = request["number"]
@@ -49,19 +51,24 @@ class RequestHandler:
         if self.number:
             if self.is_first:
                 self.log_request("new")
-                return {"request_ok": True, "possible_solution": self._generate_possible_solution()}
+                return {"request_ok": True, "possible_solution": self._generate_possible_solution(), "error_description": self._get_error_description()}
             else:
-                self.log_request("moved to prisma")              
-                return {"request_ok": True, "possible_solution": None}
+                self.log_request("moved to prisma")
+                return {"request_ok": True, "possible_solution": None, "error_description": None}
         elif not self.number and not self.is_first:
             self.log_request("solved")
-            return {"request_ok": True, "possible_solution": None}
+            return {"request_ok": True, "possible_solution": None, "error_description": None}
         else:
             self.log_request("internal error")
-            return {"request_ok": False, "possible_solution": None}
+            return {"request_ok": False, "possible_solution": None, "error_description": None}
 
     def _generate_possible_solution(self):
         return self.config["possible_solutions"][self.number]
+
+    def _get_error_description(self):
+        if not self.number:
+            self.number = "01"
+        return self.config["descriptions"][self.number]
 
     def create_DAV_connection(self):
         # creates connection to PRISMA DAV serverself.
